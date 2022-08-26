@@ -2,7 +2,7 @@ from email.base64mime import header_length
 from django.db import models  # noqa F401
 from django.forms.models import model_to_dict
 from django.utils.timezone import localtime
-# your models here
+
 
 class Pokemon(models.Model):
     name = models.TextField(blank=True, max_length=25, verbose_name='Русское имя')
