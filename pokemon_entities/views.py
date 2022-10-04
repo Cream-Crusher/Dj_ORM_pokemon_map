@@ -60,9 +60,10 @@ def show_pokemon(request, pokemon_id):
     pokemons = []
     pokemon = Pokemon.objects.all()
     pokemon_entity = pokemon.get(id=pokemon_id).pokemons.filter(disappeared_at__gte=localtime(), appeared_at__lte=localtime())[0]
+    pokemon_connections = pokemon_entity.pokemon_entities.pokemon_connections.all()
 
     try:
-        previous_pokemon = pokemon.get(name=pokemon_entity.pokemon_entities.previous_evolution)
+        previous_pokemon = pokemon_connections[0]
         previous_evolution = {
             "title_ru": previous_pokemon,
             "pokemon_id": previous_pokemon.id,
@@ -72,7 +73,7 @@ def show_pokemon(request, pokemon_id):
         previous_evolution = {}
 
     try:
-        next_pokemon = pokemon.get(name=pokemon_entity.pokemon_entities.next_evolution)
+        next_pokemon = pokemon_connections[1]
         next_evolution = {
             "title_ru": next_pokemon,
             "pokemon_id": next_pokemon.id,

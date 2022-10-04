@@ -11,6 +11,7 @@ class Pokemon(models.Model):
     description = models.TextField(blank=True, verbose_name='Описание')
     previous_evolution = models.CharField(blank=True, max_length=25, verbose_name='Имя предыдущий эволюции')
     next_evolution = models.CharField(blank=True, max_length=25, verbose_name='Имя следующей эволюции')
+    pokemon_connections = models.ManyToManyField('self')
 
     def __str__(self):
         return self.name
