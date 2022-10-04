@@ -35,9 +35,9 @@ def show_all_pokemons(request):
 
     for pokemon in pokemons_name_and_parameter:
 
-        title_ru = pokemon.pokemon_entities.name
+        title_ru = pokemon.pokemon.name
         pokemons_name.append(title_ru)
-        img_url = request.build_absolute_uri('media/{}'.format(pokemon.pokemon_entities.image))
+        img_url = request.build_absolute_uri('media/{}'.format(pokemon.pokemon.image))
         pokemons_on_page.append({
             'pokemon_id':  pokemon.id,
             'img_url': img_url,
@@ -60,7 +60,7 @@ def show_pokemon(request, pokemon_id):
     pokemons = []
     pokemon = Pokemon.objects.all()
     pokemon_entity = pokemon.get(id=pokemon_id).pokemons.filter(disappeared_at__gte=localtime(), appeared_at__lte=localtime())[0]
-    pokemon_connections = pokemon_entity.pokemon_entities.pokemon_connections.all()
+    pokemon_connections = pokemon_entity.pokemon.pokemon_connections.all()
 
     try:
         previous_pokemon = pokemon_connections[0]
@@ -85,11 +85,11 @@ def show_pokemon(request, pokemon_id):
     pokemons.append(
         {
             'pokemon_id': pokemon_entity.id,
-            'title_ru': pokemon_entity.pokemon_entities.name,
-            'title_en': pokemon_entity.pokemon_entities.name_en,
-            'title_jp': pokemon_entity.pokemon_entities.name_jp,
-            'description': pokemon_entity.pokemon_entities.description,
-            'img_url': request.build_absolute_uri('../../media/{}'.format(pokemon_entity.pokemon_entities.image)),
+            'title_ru': pokemon_entity.pokemon.name,
+            'title_en': pokemon_entity.pokemon.name_en,
+            'title_jp': pokemon_entity.pokemon.name_jp,
+            'description': pokemon_entity.pokemon.description,
+            'img_url': request.build_absolute_uri('../../media/{}'.format(pokemon_entity.pokemon.image)),
             'entities': [
                 {
                     'level': pokemon_entity.level,
