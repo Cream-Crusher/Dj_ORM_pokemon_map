@@ -9,7 +9,7 @@ class Pokemon(models.Model):
     name_jp = models.CharField(max_length=25, unique=True, verbose_name='Японское имя')
     image = models.ImageField(blank=True, unique=True, verbose_name='Картинка')
     description = models.TextField(blank=True, verbose_name='Описание')
-    pokemon_connections = models.ManyToManyField('self')
+    pokemon_connections = models.ManyToManyField('self', verbose_name='Эволюции покемона')
 
     def __str__(self):
         return self.name
