@@ -58,7 +58,7 @@ def show_all_pokemons(request):
 def show_pokemon(request, pokemon_id):
     pokemons = []
     pokemon = Pokemon.objects.all()
-    pokemon_entity = pokemon.get(id=pokemon_id).pokemon.filter(disappeared_at__gte=localtime(), appeared_at__lte=localtime()).first()
+    pokemon_entity = pokemon.get(id=pokemon_id).pokemons.filter(disappeared_at__gte=localtime(), appeared_at__lte=localtime()).first()
     previous_pokemon = pokemon_entity.pokemon.degradation
     next_pokemon = pokemon_entity.pokemon.evolution
 
