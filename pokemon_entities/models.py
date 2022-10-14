@@ -9,8 +9,8 @@ class Pokemon(models.Model):
     name_jp = models.CharField(max_length=25, unique=True, verbose_name='Японское имя')
     image = models.ImageField(blank=True, unique=True, verbose_name='Картинка')
     description = models.TextField(blank=True, verbose_name='Описание')
-    evolution = models.ForeignKey('self', blank=True, on_delete = models.CASCADE, verbose_name="evolution", related_name='Эволюция')
-    degradation = models.ForeignKey('self', blank=True, on_delete = models.CASCADE, verbose_name="degradation", related_name='Деградация')
+    evolution = models.ForeignKey('self', blank=True, on_delete = models.CASCADE, verbose_name='Эволюция' , related_name='evolutions')
+    degradation = models.ForeignKey('self', blank=True, on_delete = models.CASCADE, verbose_name='Деградация' , related_name='degradations')
 
     def __str__(self):
         return self.name
