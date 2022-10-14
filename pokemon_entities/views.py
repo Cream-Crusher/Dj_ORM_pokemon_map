@@ -104,7 +104,6 @@ def show_pokemon(request, pokemon_id):
     )
 
     for pokemon in pokemons:
-        print(pokemon_id)
         if pokemon['pokemon_id'] == int(pokemon_id):
             requested_pokemon = pokemon
             break
