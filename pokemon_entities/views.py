@@ -34,7 +34,6 @@ def show_all_pokemons(request):
     pokemons_name = ['#']
 
     for pokemon in pokemons_name_and_parameter:
-
         title_ru = pokemon.pokemon.name
         pokemons_name.append(title_ru)
         img_url = request.build_absolute_uri('media/{}'.format(pokemon.pokemon.image))
@@ -59,27 +58,29 @@ def show_all_pokemons(request):
 def show_pokemon(request, pokemon_id):
     pokemons = []
     pokemon = Pokemon.objects.all()
-    pokemon_entity = pokemon.get(id=pokemon_id).pokemons.filter(disappeared_at__gte=localtime(), appeared_at__lte=localtime())[0]
-    pokemon_connections = pokemon_entity.pokemon.pokemon_connections.all()
+    pokemon_entity = pokemon.get(id=pokemon_id).pokemon.filter(disappeared_at__gte=localtime(), appeared_at__lte=localtime()).first()
+    previous_pokemon = pokemon_entity.pokemon.degradation
+    next_pokemon = pokemon_entity.pokemon.evolution
 
-    try:
-        previous_pokemon = pokemon_connections[0]
+    if str(previous_pokemon) != pokemon_entity.pokemon.name:
+
         previous_evolution = {
             "title_ru": previous_pokemon,
             "pokemon_id": previous_pokemon.id,
             "img_url": request.build_absolute_uri('../../media/{}'.format(previous_pokemon.image))
         }
-    except:
+    else:
         previous_evolution = {}
 
-    try:
-        next_pokemon = pokemon_connections[1]
+    if str(next_pokemon) != pokemon_entity.pokemon.name:
+
+        next_pokemon = pokemon_entity.pokemon.evolution
         next_evolution = {
             "title_ru": next_pokemon,
             "pokemon_id": next_pokemon.id,
             "img_url": request.build_absolute_uri('../../media/{}'.format(next_pokemon.image))
         }
-    except:
+    else:
         next_evolution = {}
 
     pokemons.append(
@@ -103,6 +104,7 @@ def show_pokemon(request, pokemon_id):
     )
 
     for pokemon in pokemons:
+        print(pokemon_id)
         if pokemon['pokemon_id'] == int(pokemon_id):
             requested_pokemon = pokemon
             break

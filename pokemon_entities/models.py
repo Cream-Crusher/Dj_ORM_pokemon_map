@@ -9,14 +9,15 @@ class Pokemon(models.Model):
     name_jp = models.CharField(max_length=25, unique=True, verbose_name='Японское имя')
     image = models.ImageField(blank=True, unique=True, verbose_name='Картинка')
     description = models.TextField(blank=True, verbose_name='Описание')
-    pokemon_connections = models.ManyToManyField('self', verbose_name='Эволюции покемона')
+    evolution = models.ForeignKey('self', blank=True, on_delete = models.CASCADE, verbose_name="evolution", related_name='Эволюция')
+    degradation = models.ForeignKey('self', blank=True, on_delete = models.CASCADE, verbose_name="degradation", related_name='Деградация')
 
     def __str__(self):
         return self.name
 
 
 class PokemonEntity(models.Model):
-    pokemon = models.ForeignKey(Pokemon, null=True, verbose_name='Покемон', on_delete=models.CASCADE, related_name='pokemons')
+    pokemon = models.ForeignKey(Pokemon, null=True, on_delete=models.CASCADE, related_name='pokemon', verbose_name='Покемон')
     lat = models.FloatField(verbose_name='Широта')
     low = models.FloatField(verbose_name='Долгота')
     appeared_at = models.DateTimeField(null=True, verbose_name='Время включения')
@@ -29,4 +30,4 @@ class PokemonEntity(models.Model):
 
     def __str__(self):
 
-        return str(self.pokemon_entities)
+        return str(self.pokemon)
