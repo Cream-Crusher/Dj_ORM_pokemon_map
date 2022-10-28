@@ -30,13 +30,10 @@ def add_pokemon(folium_map, lat, lon, image_url=DEFAULT_IMAGE_URL):
 
 def show_all_pokemons(request):
     folium_map = folium.Map(location=MOSCOW_CENTER, zoom_start=12)    
-    pokemons_name_and_parameter = PokemonEntity.objects.all()
+    names_and_parameters = PokemonEntity.objects.all()
     pokemons_on_page = []
-    pokemons_name = ['#']
 
-    for pokemon in pokemons_name_and_parameter:
-        title_ru = pokemon.pokemon.name
-        pokemons_name.append(title_ru)
+    for pokemon in names_and_parameters:
         img_url = request.build_absolute_uri('media/{}'.format(pokemon.pokemon.image))
         pokemons_on_page.append({
             'pokemon_id':  pokemon.id,
@@ -59,11 +56,11 @@ def show_all_pokemons(request):
 def show_pokemon(request, pokemon_id):
     pokemons = []
     pokemon = Pokemon.objects.all()
-    pokemon_entity = pokemon.get(id=pokemon_id).pokemons.filter(disappeared_at__gte=localtime(), appeared_at__lte=localtime()).first()
-    previous_pokemon = pokemon_entity.pokemon.degradation
-    next_pokemon = pokemon_entity.pokemon.evolution
+    pokemon_entity = pokemon.get(id=pokemon_id).pokemon.filter(disappeared_at__gte=localtime(), appeared_at__lte=localtime()).first()
+    previous_pokemon = pokemon_entity.pokemon.progenitor
+    next_evolution = pokemon_entity.pokemon.next_evolution.first()
 
-    if str(previous_pokemon) != pokemon_entity.pokemon.name:
+    if previous_pokemon:
 
         previous_evolution = {
             "title_ru": previous_pokemon,
@@ -73,13 +70,12 @@ def show_pokemon(request, pokemon_id):
     else:
         previous_evolution = {}
 
-    if str(next_pokemon) != pokemon_entity.pokemon.name:
+    if next_evolution:
 
-        next_pokemon = pokemon_entity.pokemon.evolution
         next_evolution = {
-            "title_ru": next_pokemon,
-            "pokemon_id": next_pokemon.id,
-            "img_url": request.build_absolute_uri('../../media/{}'.format(next_pokemon.image))
+            "title_ru": next_evolution,
+            "pokemon_id": next_evolution.id,
+            "img_url": request.build_absolute_uri('../../media/{}'.format(next_evolution.image))
         }
     else:
         next_evolution = {}
