@@ -86,22 +86,22 @@ def get_next_evolution_pokemon(pokemon_entity, request):
 
 def show_pokemon(request, pokemon_id):
     pokemons_obj = Pokemon.objects.get(id=pokemon_id)
-    pokemons_entity = get_object_or_404(pokemons_obj.names, pk=pokemon_id, disappeared_at__gte=localtime(), appeared_at__lte=localtime())
-    previous_evolution_pokemon = get_previous_evolution_pokemon(pokemons_entity, request)
-    next_evolution_pokemon = get_next_evolution_pokemon(pokemons_entity, request)
+    pokemon_entity = get_object_or_404(pokemons_obj.names, pk=pokemon_id, disappeared_at__gte=localtime(), appeared_at__lte=localtime())
+    previous_evolution_pokemon = get_previous_evolution_pokemon(pokemon_entity, request)
+    next_evolution_pokemon = get_next_evolution_pokemon(pokemon_entity, request)
 
     requested_pokemon = {
-        'pokemon_id': pokemons_entity.id,
-        'title_ru': pokemons_entity.pokemon.name,
-        'title_en': pokemons_entity.pokemon.name_en,
-        'title_jp': pokemons_entity.pokemon.name_jp,
-        'description': pokemons_entity.pokemon.description,
-        'img_url': request.build_absolute_uri('../../media/{}'.format(pokemons_entity.pokemon.image)),
+        'pokemon_id': pokemon_entity.id,
+        'title_ru': pokemon_entity.pokemon.name,
+        'title_en': pokemon_entity.pokemon.name_en,
+        'title_jp': pokemon_entity.pokemon.name_jp,
+        'description': pokemon_entity.pokemon.description,
+        'img_url': request.build_absolute_uri('../../media/{}'.format(pokemon_entity.pokemon.image)),
         'entities': [
             {
-                'level': pokemons_entity.level,
-                'lat': pokemons_entity.lat,
-                'lon': pokemons_entity.low
+                'level': pokemon_entity.level,
+                'lat': pokemon_entity.lat,
+                'lon': pokemon_entity.low
             },
             ],
         "next_evolution": next_evolution_pokemon,
@@ -112,10 +112,10 @@ def show_pokemon(request, pokemon_id):
 
         folium_map = folium.Map(location=MOSCOW_CENTER, zoom_start=12)
 
-        for pokemons_entity in requested_pokemon['entities']:
+        for pokemon_entity in requested_pokemon['entities']:
             add_pokemon(
-                folium_map, pokemons_entity['lat'],
-                pokemons_entity['lon'],
+                folium_map, pokemon_entity['lat'],
+                pokemon_entity['lon'],
                 requested_pokemon['img_url']
             )
     else:
