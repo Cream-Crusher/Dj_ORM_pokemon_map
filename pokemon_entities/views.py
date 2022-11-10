@@ -1,10 +1,8 @@
 import folium
-import re
 
 from .models import PokemonEntity, Pokemon
 from django.http import HttpResponseNotFound
 from django.shortcuts import render
-from requests import request
 from django.utils.timezone import localtime
 from django.shortcuts import get_object_or_404
 
@@ -62,7 +60,7 @@ def get_previous_evolution_pokemon(pokemon_entity, request):
             "title_ru": previous_pokemon,
             "pokemon_id": previous_pokemon.id,
             "img_url": request.build_absolute_uri('../../media/{}'.format(previous_pokemon.image))
-        }
+            }
     else:
 
         return {}
@@ -77,7 +75,7 @@ def get_next_evolution_pokemon(pokemon_entity, request):
             "title_ru": next_evolution,
             "pokemon_id": next_evolution.id,
             "img_url": request.build_absolute_uri('../../media/{}'.format(next_evolution.image))
-        }
+            }
     else:
         return {}
 
