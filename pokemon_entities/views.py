@@ -29,21 +29,26 @@ def add_pokemon(folium_map, lat, lon, image_url=DEFAULT_IMAGE_URL):
 def show_all_pokemons(request):
     folium_map = folium.Map(location=MOSCOW_CENTER, zoom_start=12)    
     pokemons_entity = PokemonEntity.objects.all()
+    pokemons_obj = Pokemon.objects.all()
     pokemons_on_page = []
 
     for pokemon_entity in pokemons_entity:
         img_url = request.build_absolute_uri('media/{}'.format(pokemon_entity.pokemon.image))
-        pokemons_on_page.append({
-            'pokemon_id':  pokemon_entity.id,
-            'img_url': img_url,
-            'title_ru': pokemon_entity
-        })
 
         add_pokemon(
             folium_map, pokemon_entity.lat,
             pokemon_entity.low,
             img_url
         )
+
+    for pokemon_obj in pokemons_obj:
+        img_url = request.build_absolute_uri('media/{}'.format(pokemon_obj.image))
+
+        pokemons_on_page.append({
+            'pokemon_id':  pokemon_obj.id,
+            'img_url': img_url,
+            'title_ru': pokemon_obj
+            })
 
     return render(request, 'mainpage.html', context={
         'map': folium_map._repr_html_(),
@@ -62,7 +67,6 @@ def get_previous_evolution_pokemon(pokemon_entity, request):
             "img_url": request.build_absolute_uri('../../media/{}'.format(previous_pokemon.image))
             }
     else:
-
         return {}
 
 
@@ -81,8 +85,8 @@ def get_next_evolution_pokemon(pokemon_entity, request):
 
 
 def show_pokemon(request, pokemon_id):
-    pokemon_obj = Pokemon.objects.get(id=pokemon_id)
-    pokemons_entity = get_object_or_404(pokemon_obj.names, disappeared_at__gte=localtime(), appeared_at__lte=localtime())
+    pokemons_obj = Pokemon.objects.get(id=pokemon_id)
+    pokemons_entity = get_object_or_404(pokemons_obj.names, pk=pokemon_id, disappeared_at__gte=localtime(), appeared_at__lte=localtime())
     previous_evolution_pokemon = get_previous_evolution_pokemon(pokemons_entity, request)
     next_evolution_pokemon = get_next_evolution_pokemon(pokemons_entity, request)
 
