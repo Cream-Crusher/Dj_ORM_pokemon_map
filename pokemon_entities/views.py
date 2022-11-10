@@ -30,10 +30,10 @@ def add_pokemon(folium_map, lat, lon, image_url=DEFAULT_IMAGE_URL):
 
 def show_all_pokemons(request):
     folium_map = folium.Map(location=MOSCOW_CENTER, zoom_start=12)    
-    pokemon_entitys = PokemonEntity.objects.all()
+    pokemons_entity = PokemonEntity.objects.all()
     pokemons_on_page = []
 
-    for pokemon_entity in pokemon_entitys:
+    for pokemon_entity in pokemons_entity:
         img_url = request.build_absolute_uri('media/{}'.format(pokemon_entity.pokemon.image))
         pokemons_on_page.append({
             'pokemon_id':  pokemon_entity.id,
@@ -53,7 +53,7 @@ def show_all_pokemons(request):
     })
 
 
-def get_pokemon_previous_evolution(pokemon_entity, request):
+def get_previous_evolution_pokemon(pokemon_entity, request):
     previous_pokemon = pokemon_entity.pokemon.progenitor
 
     if previous_pokemon:
@@ -68,7 +68,7 @@ def get_pokemon_previous_evolution(pokemon_entity, request):
         return {}
 
 
-def get_pokemon_next_evolution(pokemon_entity, request):
+def get_next_evolution_pokemon(pokemon_entity, request):
     next_evolution = pokemon_entity.pokemon.next_evolutions.first()
 
     if next_evolution:
@@ -84,41 +84,41 @@ def get_pokemon_next_evolution(pokemon_entity, request):
 
 def show_pokemon(request, pokemon_id):
     pokemon_obj = Pokemon.objects.get(id=pokemon_id)
-    pokemon_entity = get_object_or_404(pokemon_obj.names, disappeared_at__gte=localtime(), appeared_at__lte=localtime())
-    previous_evolution = get_pokemon_previous_evolution(pokemon_entity, request)
-    next_evolution = get_pokemon_next_evolution(pokemon_entity, request)
+    pokemons_entity = get_object_or_404(pokemon_obj.names, disappeared_at__gte=localtime(), appeared_at__lte=localtime())
+    previous_evolution_pokemon = get_previous_evolution_pokemon(pokemons_entity, request)
+    next_evolution_pokemon = get_next_evolution_pokemon(pokemons_entity, request)
 
-    pokemon = {
-        'pokemon_id': pokemon_entity.id,
-        'title_ru': pokemon_entity.pokemon.name,
-        'title_en': pokemon_entity.pokemon.name_en,
-        'title_jp': pokemon_entity.pokemon.name_jp,
-        'description': pokemon_entity.pokemon.description,
-        'img_url': request.build_absolute_uri('../../media/{}'.format(pokemon_entity.pokemon.image)),
+    requested_pokemon = {
+        'pokemon_id': pokemons_entity.id,
+        'title_ru': pokemons_entity.pokemon.name,
+        'title_en': pokemons_entity.pokemon.name_en,
+        'title_jp': pokemons_entity.pokemon.name_jp,
+        'description': pokemons_entity.pokemon.description,
+        'img_url': request.build_absolute_uri('../../media/{}'.format(pokemons_entity.pokemon.image)),
         'entities': [
             {
-                'level': pokemon_entity.level,
-                'lat': pokemon_entity.lat,
-                'lon': pokemon_entity.low
+                'level': pokemons_entity.level,
+                'lat': pokemons_entity.lat,
+                'lon': pokemons_entity.low
             },
             ],
-        "next_evolution": next_evolution,
-        'previous_evolution': previous_evolution
+        "next_evolution": next_evolution_pokemon,
+        'previous_evolution': previous_evolution_pokemon
         }
 
-    if pokemon['pokemon_id'] == int(pokemon_id):
+    if requested_pokemon['pokemon_id'] == int(pokemon_id):
 
         folium_map = folium.Map(location=MOSCOW_CENTER, zoom_start=12)
 
-        for pokemon_entity in pokemon['entities']:
+        for pokemons_entity in requested_pokemon['entities']:
             add_pokemon(
-                folium_map, pokemon_entity['lat'],
-                pokemon_entity['lon'],
-                pokemon['img_url']
+                folium_map, pokemons_entity['lat'],
+                pokemons_entity['lon'],
+                requested_pokemon['img_url']
             )
     else:
         return HttpResponseNotFound('<h1>Такой покемон не найден</h1>')
 
     return render(request, 'pokemon.html', context={
-        'map': folium_map._repr_html_(), 'pokemon': pokemon
+        'map': folium_map._repr_html_(), 'pokemon': requested_pokemon
     })
