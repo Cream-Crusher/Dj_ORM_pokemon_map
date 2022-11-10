@@ -53,48 +53,57 @@ def show_all_pokemons(request):
     })
 
 
-def show_pokemon(request, pokemon_id):
-    pokemon = Pokemon.objects.all()
-    pokemon_entity = pokemon.get(id=pokemon_id).names.filter(disappeared_at__gte=localtime(), appeared_at__lte=localtime()).first()
+def pokemon_previous_evolution(pokemon_entity, request):
     previous_pokemon = pokemon_entity.pokemon.progenitor
-    next_evolution = pokemon_entity.pokemon.next_evolutions.first()
 
     if previous_pokemon:
 
-        previous_evolution = {
+        return {
             "title_ru": previous_pokemon,
             "pokemon_id": previous_pokemon.id,
             "img_url": request.build_absolute_uri('../../media/{}'.format(previous_pokemon.image))
         }
     else:
-        previous_evolution = {}
+
+        return {}
+
+
+def pokemon_next_evolution(pokemon_entity, request):
+    next_evolution = pokemon_entity.pokemon.next_evolutions.first()
 
     if next_evolution:
 
-        next_evolution = {
+        return {
             "title_ru": next_evolution,
             "pokemon_id": next_evolution.id,
             "img_url": request.build_absolute_uri('../../media/{}'.format(next_evolution.image))
         }
     else:
-        next_evolution = {}
+        return {}
+
+
+def show_pokemon(request, pokemon_id):
+    pokemon_obj = Pokemon.objects.get(id=pokemon_id)
+    pokemon_entity = get_object_or_404(pokemon_obj.names, disappeared_at__gte=localtime(), appeared_at__lte=localtime())
+    previous_evolution = pokemon_previous_evolution(pokemon_entity, request)
+    next_evolution = pokemon_next_evolution(pokemon_entity, request)
 
     pokemon = {
-            'pokemon_id': pokemon_entity.id,
-            'title_ru': pokemon_entity.pokemon.name,
-            'title_en': pokemon_entity.pokemon.name_en,
-            'title_jp': pokemon_entity.pokemon.name_jp,
-            'description': pokemon_entity.pokemon.description,
-            'img_url': request.build_absolute_uri('../../media/{}'.format(pokemon_entity.pokemon.image)),
-            'entities': [
-                {
-                    'level': pokemon_entity.level,
-                    'lat': pokemon_entity.lat,
-                    'lon': pokemon_entity.low
-                },
-                ],
-            "next_evolution": next_evolution,
-            'previous_evolution': previous_evolution
+        'pokemon_id': pokemon_entity.id,
+        'title_ru': pokemon_entity.pokemon.name,
+        'title_en': pokemon_entity.pokemon.name_en,
+        'title_jp': pokemon_entity.pokemon.name_jp,
+        'description': pokemon_entity.pokemon.description,
+        'img_url': request.build_absolute_uri('../../media/{}'.format(pokemon_entity.pokemon.image)),
+        'entities': [
+            {
+                'level': pokemon_entity.level,
+                'lat': pokemon_entity.lat,
+                'lon': pokemon_entity.low
+            },
+            ],
+        "next_evolution": next_evolution,
+        'previous_evolution': previous_evolution
         }
 
     try:
