@@ -4,7 +4,6 @@ from .models import PokemonEntity, Pokemon
 from django.http import HttpResponseNotFound
 from django.shortcuts import render
 from django.utils.timezone import localtime
-from django.shortcuts import get_object_or_404
 
 
 MOSCOW_CENTER = [55.751244, 37.618423]
@@ -84,26 +83,35 @@ def get_next_evolution_pokemon(pokemon_entity, request):
         return {}
 
 
+def get_location_pokemons(entitys_pokemon):
+    location_pokemons = []
+
+    for pokemon_entity in entitys_pokemon:
+
+        location_pokemons.append({
+            'level': pokemon_entity.level,
+            'lat': pokemon_entity.lat,
+            'lon': pokemon_entity.low
+            })
+
+    return location_pokemons
+
+
 def show_pokemon(request, pokemon_id):
     pokemons_obj = Pokemon.objects.get(id=pokemon_id)
-    pokemon_entity = get_object_or_404(pokemons_obj.entity_pokemons, pk=pokemon_id, disappeared_at__gte=localtime(), appeared_at__lte=localtime())
-    previous_evolution_pokemon = get_previous_evolution_pokemon(pokemon_entity, request)
-    next_evolution_pokemon = get_next_evolution_pokemon(pokemon_entity, request)
+    entitys_pokemon = PokemonEntity.objects.filter(pokemon=pokemon_id, disappeared_at__gte=localtime(), appeared_at__lte=localtime())
+    location_pokemons = get_location_pokemons(entitys_pokemon)
+    previous_evolution_pokemon = get_previous_evolution_pokemon(entitys_pokemon.first(), request)
+    next_evolution_pokemon = get_next_evolution_pokemon(entitys_pokemon.first(), request)
 
     requested_pokemon = {
-        'pokemon_id': pokemon_entity.id,
-        'title_ru': pokemon_entity.pokemon.name,
-        'title_en': pokemon_entity.pokemon.name_en,
-        'title_jp': pokemon_entity.pokemon.name_jp,
-        'description': pokemon_entity.pokemon.description,
-        'img_url': request.build_absolute_uri('../../media/{}'.format(pokemon_entity.pokemon.image)),
-        'entities': [
-            {
-                'level': pokemon_entity.level,
-                'lat': pokemon_entity.lat,
-                'lon': pokemon_entity.low
-            },
-            ],
+        'pokemon_id': pokemons_obj.id,
+        'title_ru': pokemons_obj.name,
+        'title_en': pokemons_obj.name_en,
+        'title_jp': pokemons_obj.name_jp,
+        'description': pokemons_obj.description,
+        'img_url': request.build_absolute_uri('../../media/{}'.format(pokemons_obj.image)),
+        'entities': location_pokemons,
         "next_evolution": next_evolution_pokemon,
         'previous_evolution': previous_evolution_pokemon
         }
