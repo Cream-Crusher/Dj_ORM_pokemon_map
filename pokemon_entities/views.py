@@ -86,7 +86,7 @@ def get_next_evolution_pokemon(pokemon_entity, request):
 
 def show_pokemon(request, pokemon_id):
     pokemons_obj = Pokemon.objects.get(id=pokemon_id)
-    pokemon_entity = get_object_or_404(pokemons_obj.names, pk=pokemon_id, disappeared_at__gte=localtime(), appeared_at__lte=localtime())
+    pokemon_entity = get_object_or_404(pokemons_obj.pokemons_entity, pk=pokemon_id, disappeared_at__gte=localtime(), appeared_at__lte=localtime())
     previous_evolution_pokemon = get_previous_evolution_pokemon(pokemon_entity, request)
     next_evolution_pokemon = get_next_evolution_pokemon(pokemon_entity, request)
 
