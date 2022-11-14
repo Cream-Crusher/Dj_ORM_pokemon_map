@@ -4,6 +4,7 @@ from .models import PokemonEntity, Pokemon
 from django.http import HttpResponseNotFound
 from django.shortcuts import render
 from django.utils.timezone import localtime
+from django.shortcuts import get_object_or_404
 
 
 MOSCOW_CENTER = [55.751244, 37.618423]
@@ -55,7 +56,7 @@ def show_all_pokemons(request):
     })
 
 
-def get_previous_evolution_pokemon(pokemon_entity, request):
+def get_previous_evolution_of_a_pokemon(pokemon_entity, request):
     previous_pokemon = pokemon_entity.pokemon.progenitor
 
     if previous_pokemon:
@@ -69,7 +70,7 @@ def get_previous_evolution_pokemon(pokemon_entity, request):
         return {}
 
 
-def get_next_evolution_pokemon(pokemon_entity, request):
+def get_pokemon_next_evolution(pokemon_entity, request):
     next_evolution = pokemon_entity.pokemon.next_evolutions.first()
 
     if next_evolution:
@@ -83,26 +84,33 @@ def get_next_evolution_pokemon(pokemon_entity, request):
         return {}
 
 
-def get_location_pokemons(entitys_pokemon):
-    location_pokemons = []
+def get_pokemon_locations(pokemon_entities):
+    pokemon_locations = []
 
-    for pokemon_entity in entitys_pokemon:
+    for pokemon_entity in pokemon_entities:
 
-        location_pokemons.append({
+        pokemon_locations.append({
             'level': pokemon_entity.level,
             'lat': pokemon_entity.lat,
             'lon': pokemon_entity.low
             })
 
-    return location_pokemons
+    return pokemon_locations
 
 
+#pokemon_entity = get_object_or_404(pokemons_obj.names, pk=pokemon_id, disappeared_at__gte=localtime(), appeared_at__lte=localtime())
 def show_pokemon(request, pokemon_id):
+
     pokemons_obj = Pokemon.objects.get(id=pokemon_id)
-    entitys_pokemon = PokemonEntity.objects.filter(pokemon=pokemon_id, disappeared_at__gte=localtime(), appeared_at__lte=localtime())
-    location_pokemons = get_location_pokemons(entitys_pokemon)
-    previous_evolution_pokemon = get_previous_evolution_pokemon(entitys_pokemon.first(), request)
-    next_evolution_pokemon = get_next_evolution_pokemon(entitys_pokemon.first(), request)
+    q = get_object_or_404(pokemons_obj.pokemons, id=pokemons_obj.id, disappeared_at__gte=localtime(), appeared_at__lte=localtime())
+    print(q)
+
+
+    pokemons_obj = Pokemon.objects.get(id=pokemon_id)
+    pokemon_entities = PokemonEntity.objects.filter(pokemon=pokemon_id, disappeared_at__gte=localtime(), appeared_at__lte=localtime())
+    pokemon_locations = get_pokemon_locations(pokemon_entities)
+    previous_evolution_of_a_pokemon = get_previous_evolution_of_a_pokemon(pokemon_entities.first(), request)
+    pokemon_next_evolution = get_pokemon_next_evolution(pokemon_entities.first(), request)
 
     requested_pokemon = {
         'pokemon_id': pokemons_obj.id,
@@ -111,23 +119,19 @@ def show_pokemon(request, pokemon_id):
         'title_jp': pokemons_obj.name_jp,
         'description': pokemons_obj.description,
         'img_url': request.build_absolute_uri('../../media/{}'.format(pokemons_obj.image)),
-        'entities': location_pokemons,
-        "next_evolution": next_evolution_pokemon,
-        'previous_evolution': previous_evolution_pokemon
+        'entities': pokemon_locations,
+        "next_evolution": pokemon_next_evolution,
+        'previous_evolution': previous_evolution_of_a_pokemon
         }
 
-    if requested_pokemon['pokemon_id'] == int(pokemon_id):
+    folium_map = folium.Map(location=MOSCOW_CENTER, zoom_start=12)
 
-        folium_map = folium.Map(location=MOSCOW_CENTER, zoom_start=12)
-
-        for pokemon_entity in requested_pokemon['entities']:
-            add_pokemon(
-                folium_map, pokemon_entity['lat'],
-                pokemon_entity['lon'],
-                requested_pokemon['img_url']
-            )
-    else:
-        return HttpResponseNotFound('<h1>Такой покемон не найден</h1>')
+    for pokemon_entity in requested_pokemon['entities']:
+        add_pokemon(
+            folium_map, pokemon_entity['lat'],
+            pokemon_entity['lon'],
+            requested_pokemon['img_url']
+        )
 
     return render(request, 'pokemon.html', context={
         'map': folium_map._repr_html_(), 'pokemon': requested_pokemon
