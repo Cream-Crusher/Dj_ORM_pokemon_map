@@ -27,12 +27,12 @@ def add_pokemon(folium_map, lat, lon, image_url=DEFAULT_IMAGE_URL):
 
 
 def show_all_pokemons(request):
-    folium_map = folium.Map(location=MOSCOW_CENTER, zoom_start=12)    
-    entity_pokemons = PokemonEntity.objects.filter(disappeared_at__gte=localtime(), appeared_at__lte=localtime())
-    obj_pokemons = Pokemon.objects.all()
+    folium_map = folium.Map(location=MOSCOW_CENTER, zoom_start=12)
+    pokemons = Pokemon.objects.all()
+    pokemon_entities = PokemonEntity.objects.filter(disappeared_at__gte=localtime(), appeared_at__lte=localtime())
     pokemons_on_page = []
 
-    for pokemon_entity in entity_pokemons:
+    for pokemon_entity in pokemon_entities:
         img_url = request.build_absolute_uri('media/{}'.format(pokemon_entity.pokemon.image))
 
         add_pokemon(
@@ -41,13 +41,13 @@ def show_all_pokemons(request):
             img_url
         )
 
-    for pokemon_obj in obj_pokemons:
-        img_url = request.build_absolute_uri('media/{}'.format(pokemon_obj.image))
+    for pokemon in pokemons:
+        img_url = request.build_absolute_uri('media/{}'.format(pokemon.image))
 
         pokemons_on_page.append({
-            'pokemon_id':  pokemon_obj.id,
+            'pokemon_id':  pokemon.id,
             'img_url': img_url,
-            'title_ru': pokemon_obj
+            'title_ru': pokemon
             })
 
     return render(request, 'mainpage.html', context={
@@ -56,7 +56,7 @@ def show_all_pokemons(request):
     })
 
 
-def get_previous_evolution_of_a_pokemon(pokemon_entity, request):
+def get_pokemon_previous_evolution(pokemon_entity, request):
     previous_pokemon = pokemon_entity.pokemon.progenitor
 
     if previous_pokemon:
@@ -98,30 +98,23 @@ def get_pokemon_locations(pokemon_entities):
     return pokemon_locations
 
 
-#pokemon_entity = get_object_or_404(pokemons_obj.names, pk=pokemon_id, disappeared_at__gte=localtime(), appeared_at__lte=localtime())
 def show_pokemon(request, pokemon_id):
-
-    pokemons_obj = Pokemon.objects.get(id=pokemon_id)
-    q = get_object_or_404(pokemons_obj.pokemons, id=pokemons_obj.id, disappeared_at__gte=localtime(), appeared_at__lte=localtime())
-    print(q)
-
-
-    pokemons_obj = Pokemon.objects.get(id=pokemon_id)
-    pokemon_entities = PokemonEntity.objects.filter(pokemon=pokemon_id, disappeared_at__gte=localtime(), appeared_at__lte=localtime())
+    pokemon = get_object_or_404(Pokemon, id=pokemon_id)
+    pokemon_entities = pokemon.entities.filter(disappeared_at__gte=localtime(), appeared_at__lte=localtime())
     pokemon_locations = get_pokemon_locations(pokemon_entities)
-    previous_evolution_of_a_pokemon = get_previous_evolution_of_a_pokemon(pokemon_entities.first(), request)
+    pokemon_previous_evolution = get_pokemon_previous_evolution(pokemon_entities.first(), request)
     pokemon_next_evolution = get_pokemon_next_evolution(pokemon_entities.first(), request)
 
     requested_pokemon = {
-        'pokemon_id': pokemons_obj.id,
-        'title_ru': pokemons_obj.name,
-        'title_en': pokemons_obj.name_en,
-        'title_jp': pokemons_obj.name_jp,
-        'description': pokemons_obj.description,
-        'img_url': request.build_absolute_uri('../../media/{}'.format(pokemons_obj.image)),
+        'pokemon_id': pokemon.id,
+        'title_ru': pokemon.name,
+        'title_en': pokemon.name_en,
+        'title_jp': pokemon.name_jp,
+        'description': pokemon.description,
+        'img_url': request.build_absolute_uri('../../media/{}'.format(pokemon.image)),
         'entities': pokemon_locations,
         "next_evolution": pokemon_next_evolution,
-        'previous_evolution': previous_evolution_of_a_pokemon
+        'previous_evolution': pokemon_previous_evolution
         }
 
     folium_map = folium.Map(location=MOSCOW_CENTER, zoom_start=12)
