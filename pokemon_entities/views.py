@@ -3,8 +3,8 @@ import folium
 from .models import PokemonEntity, Pokemon
 from django.http import HttpResponseNotFound
 from django.shortcuts import render
-from django.utils.timezone import localtime
 from django.shortcuts import get_object_or_404
+from django.utils import timezone
 
 
 MOSCOW_CENTER = [55.751244, 37.618423]
@@ -27,9 +27,10 @@ def add_pokemon(folium_map, lat, lon, image_url=DEFAULT_IMAGE_URL):
 
 
 def show_all_pokemons(request):
-    folium_map = folium.Map(location=MOSCOW_CENTER, zoom_start=12)
     pokemons = Pokemon.objects.all()
-    pokemon_entities = PokemonEntity.objects.filter(disappeared_at__gte=localtime(), appeared_at__lte=localtime())
+    localtime = timezone.localtime()
+    pokemon_entities = PokemonEntity.objects.filter(disappeared_at__gte=localtime, appeared_at__lte=localtime)
+    folium_map = folium.Map(location=MOSCOW_CENTER, zoom_start=12)
     pokemons_on_page = []
 
     for pokemon_entity in pokemon_entities:
@@ -100,7 +101,8 @@ def get_pokemon_locations(pokemon_entities):
 
 def show_pokemon(request, pokemon_id):
     pokemon = get_object_or_404(Pokemon, id=pokemon_id)
-    pokemon_entities = pokemon.entities.filter(disappeared_at__gte=localtime(), appeared_at__lte=localtime())
+    localtime = timezone.localtime()
+    pokemon_entities = pokemon.entities.filter(disappeared_at__gte=localtime, appeared_at__lte=localtime)
     pokemon_locations = get_pokemon_locations(pokemon_entities)
     pokemon_previous_evolution = get_pokemon_previous_evolution(pokemon_entities.first(), request)
     pokemon_next_evolution = get_pokemon_next_evolution(pokemon_entities.first(), request)
